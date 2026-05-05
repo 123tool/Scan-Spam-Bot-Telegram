@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SPY-E | SCAN & SPAM BOT</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root { --main: #ff5e5e; --bg: #fff; --dark: #000; }
+        body { background: #e7e7e7; font-family: 'Courier New', monospace; font-weight: bold; }
+        .neo-box { 
+            background: var(--bg); border: 5px solid var(--dark); 
+            box-shadow: 12px 12px 0px var(--dark); border-radius: 0; padding: 30px; 
+        }
+        .btn-fire { 
+            background: var(--main); color: #fff; border: 4px solid var(--dark); 
+            box-shadow: 5px 5px 0px var(--dark); font-size: 1.5rem; width: 100%; border-radius: 0;
+        }
+        .btn-fire:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0px var(--dark); }
+        .form-control { border: 3px solid var(--dark); border-radius: 0; background: #fff; }
+        #console { background: #000; color: #0f0; padding: 15px; height: 150px; overflow-y: auto; margin-top: 20px; border: 3px solid var(--dark); }
+    </style>
+</head>
+<body class="py-5">
+    <div class="container">
+        <div class="neo-box">
+            <h1 class="text-center mb-1">SCAN & SPAM BOT</h1>
+            <p class="text-center text-muted mb-4">Anti Scam Bot Telegram v2.0</p>
+            
+            <div class="row g-4">
+                <!-- SCANNER SECTION -->
+                <div class="col-md-5">
+                    <div class="p-3" style="background: #a2d2ff; border: 3px solid #000;">
+                        <h4>STEP 1: AUTO-SCAN</h4>
+                        <label class="d-block mb-2">Upload APK :</label>
+                        <input type="file" id="apkFile" class="form-control mb-3">
+                        <button class="btn btn-dark w-100 fw-bold" onclick="doScan()">EKSTRAK TOKEN</button>
+                        <div id="scanInfo" class="mt-2 small">Status: Idle</div>
+                    </div>
+                </div>
+
+                <!-- ATTACK SECTION -->
+                <div class="col-md-7">
+                    <h4>STEP 2: CONFIGURATION</h4>
+                    <div class="mb-3">
+                        <input type="text" id="token" class="form-control" placeholder="BOT TOKEN TARGET">
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" id="chat_id" class="form-control" placeholder="CHAT ID TARGET">
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" id="media_url" class="form-control" placeholder="URL IMAGE/FILE UNTUK SPAM">
+                    </div>
+                    <div class="row">
+                        <div class="col-6"><input type="number" id="amount" class="form-control" value="50" placeholder="JUMLAH"></div>
+                        <div class="col-6"><input type="number" step="0.1" id="delay" class="form-control" value="0.2" placeholder="DELAY"></div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-fire mt-4" onclick="doFire()">KIRIM</button>
+            
+            <div id="console">
+                [SYSTEM]: Ready for action...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const log = (msg) => {
+            const c = document.getElementById('console');
+            c.innerHTML += `<br>> ${msg}`;
+            c.scrollTop = c.scrollHeight;
+        };
+
+        async function doScan() {
+            const file = document.getElementById('apkFile').files[0];
+            if(!file) return alert("Pilih APK!");
+            log("Menganalisis binary APK...");
+            
+            const fd = new FormData();
+            fd.append('file', file);
+            
+            const res = await fetch('/scan', { method: 'POST', body: fd });
+            const data = await res.json();
+            
+            if(data.tokens && data.tokens.length > 0) {
+                document.getElementById('token').value = data.tokens[0];
+                document.getElementById('chat_id').value = data.ids[0] || "";
+                log(`Token ditemukan: ${data.tokens[0]}`);
+            } else {
+                log("Token tidak ditemukan. Penipu mungkin menggunakan enkripsi string.");
+            }
+        }
+
+        async function doFire() {
+            log("Inisialisasi serangan swarm...");
+            const payload = {
+                token: document.getElementById('token').value,
+                chat_id: document.getElementById('chat_id').value,
+                media_url: document.getElementById('media_url').value,
+                amount: document.getElementById('amount').value,
+                delay: document.getElementById('delay').value
+            };
+
+            const res = await fetch('/fire', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            const out = await res.json();
+            log(`ATTACK FINISHED! Berhasil: ${out.success}, Rate Limited: ${out.rate_limit}`);
+        }
+    </script>
+</body>
+</html>
